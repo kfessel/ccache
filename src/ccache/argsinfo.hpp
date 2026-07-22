@@ -66,7 +66,7 @@ struct ArgsInfo
   std::filesystem::path output_sd;
 
   // Sarif diagnostic generation. Contains pathname if not empty.
-  std::filesystem::path output_sarif;
+  std::vector<std::optional<std::filesystem::path>> output_sarif;
 
   // Split dwarf information (GCC 4.8 and up). Contains pathname if not empty.
   std::filesystem::path output_dwo;
@@ -115,7 +115,7 @@ struct ArgsInfo
   // -flto specified.
   bool using_lto = false;
 
-  // Us the compiler being asked to generate sarif output files
+  // Is the compiler being asked to generate sarif output files
   bool generating_sarif = false;
 
   // Are we generating a pch file (msvc -Yc)?

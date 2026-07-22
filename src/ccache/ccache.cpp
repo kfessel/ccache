@@ -1055,10 +1055,13 @@ write_result(Context& ctx,
     LOG("Source dependencies file {} missing", ctx.args_info.output_sd);
     return false;
   }
-  if (ctx.args_info.generating_sarif
-      && !serializer.add_file(core::result::FileType::sarif,
-                              ctx.args_info.output_sarif)) {
-    LOG("Sarif file {} missing", ctx.args_info.output_sarif);
+  if (ctx.args_info.generating_sarif ) {
+    for (auto c : ctx.args_info.output_sarif){
+      if (c &&
+        !serializer.add_file(core::result::FileType::sarif,c.value())){
+        LOG("Sarif file {} missing", c.value());
+      }
+    }
     return false;
   }
   if (ctx.args_info.seen_split_dwarf
@@ -2980,7 +2983,9 @@ do_cache_compilation(Context& ctx)
     LOG("Source dependencies file: {}", ctx.args_info.output_sd);
   }
   if (ctx.args_info.generating_sarif) {
-    LOG("Sarif file: {}", ctx.args_info.output_sarif);
+    for( auto & e : ctx.args_info.output_sarif )
+      if (e) LOG("Sarif file: {}", e.value());
+      else LOG("Sarif file: unknown");
   }
   if (!ctx.args_info.output_dwo.empty()) {
     LOG("Split dwarf file: {}", ctx.args_info.output_dwo);
