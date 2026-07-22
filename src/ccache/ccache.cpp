@@ -1056,10 +1056,10 @@ write_result(Context& ctx,
     return false;
   }
   if (ctx.args_info.generating_sarif ) {
-    for (auto c : ctx.args_info.output_sarif){
-      if (c &&
-        !serializer.add_file(core::result::FileType::sarif,c.value())){
-        LOG("Sarif file {} missing", c.value());
+    for (auto &sarif_path : ctx.args_info.output_sarif){
+      if (sarif_path.has_value() &&
+        !serializer.add_file(core::result::FileType::sarif,sarif_path.value())){
+        LOG("Sarif file {} missing", sarif_path.value());
       }
     }
     return false;
@@ -2983,8 +2983,8 @@ do_cache_compilation(Context& ctx)
     LOG("Source dependencies file: {}", ctx.args_info.output_sd);
   }
   if (ctx.args_info.generating_sarif) {
-    for( auto & e : ctx.args_info.output_sarif )
-      if (e) LOG("Sarif file: {}", e.value());
+    for( auto & sarif_path : ctx.args_info.output_sarif )
+      if (sarif_path.has_value()) LOG("Sarif file: {}", sarif_path.value());
       else LOG("Sarif file: unknown");
   }
   if (!ctx.args_info.output_dwo.empty()) {

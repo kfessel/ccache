@@ -1248,20 +1248,20 @@ process_option_arg(const Context& ctx,
     // The param can be a filename or a dir (ends with '\'), both absolute or
     // relative
     bool was_folder = param.ends_with("\\");
-    std::string output;
+    std::string sarif_path;
     if (was_folder) {
-      output = param;
+      sarif_path = param;
     } else {
-      output= std::string(param) + ".sarif";
+      sarif_path= std::string(param) + ".sarif";
     }
-    output =
-      core::make_relative_path(ctx, output);
+    sarif_path =
+      core::make_relative_path(ctx, sarif_path);
     if (was_folder) {
       // core::make_relative_path removes the trailing '\', but we need it
       // later. So add it back
-      output += '\\';
+      sarif_path += '\\';
     }
-    args_info.output_sarif.emplace_back(output);
+    args_info.output_sarif.emplace_back(sarif_path);
     return Statistic::none;
   }
 
@@ -1705,28 +1705,24 @@ process_args(Context& ctx)
 
   if (args_info.generating_sarif) {
     if (ctx.config.is_compiler_group_msvc()) {
-      std::for_each(args_info.output_sarif.begin(),args_info.output_sarif.end(),
-                    [args_info](auto& x){
-                      if (x && x.value().native().back() == '\\'){
-                        x.value() /= args_info.input_file.stem().generic_string() + ".sarif";
-                      }
-                    }
-      );
+      for(auto& sarif_path : args_info.output_sarif){
+        if (sarif_path.has_value() && sarif_path.value().native().back() == '\\'){
+          sarif_path.value() /= args_info.input_file.stem().generic_string() + ".sarif";
+        }
+      }
     } else {
       // not msvc
-      std::for_each(args_info.output_sarif.begin(),args_info.output_sarif.end(),
-                    [args_info,&state,&ctx](auto& x){
-                      if (!x){
-                        state.hash_actual_cwd = true;
-                        std::filesystem::path default_sarif = ctx.apparent_cwd;
-                        default_sarif /= args_info.output_obj.stem();
-                        default_sarif += args_info.input_file.extension();
-                        default_sarif += ".sarif";
-                        x = default_sarif;
-                      }
-                      // else we assume path is set by param
-                    }
-      );
+      for(auto & sarif_path:args_info.output_sarif){
+        if (!sarif_path.has_value()){
+          state.hash_actual_cwd = true;
+          std::filesystem::path default_sarif = ctx.apparent_cwd;
+          default_sarif /= args_info.output_obj.stem();
+          default_sarif += args_info.input_file.extension();
+          default_sarif += ".sarif";
+          sarif_path = default_sarif;
+        }
+        // else we assume path is set by param
+      }
     }
   }
 
